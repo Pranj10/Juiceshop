@@ -9,17 +9,23 @@ steps:
   persistCredentials: true
 
 - task: PowerShell@2
-  displayName: 'Download Checkmarx CLI'
+  displayName: 'Download and Extract Checkmarx CLI'
   inputs:
     targetType: 'inline'
     script: |
-      Invoke-WebRequest -Uri "https://github.com/Checkmarx/ast-cli/releases/download/2.3.16/ast-cli_2.3.16_windows_x64.zip"
+      $cliUrl = "https://github.com/Checkmarx/ast-cli/releases/download/2.3.16/ast-cli_2.3.16_windows_x64.zip"
+      $outputPath = "$(Build.ArtifactStagingDirectory)\cx-cli.zip"
+      $extractPath = "$(Build.ArtifactStagingDirectory)\cx-cli"
+      
+      Invoke-WebRequest -Uri $cliUrl -OutFile $outputPath
+      Expand-Archive -Path $outputPath -DestinationPath $extractPath
+      echo "##vso[task.setvariable variable=CX_CLI_PATH]$extractPath"
 
 - task: CmdLine@2
   displayName: 'Run IaC Scan'
   inputs:
     script: |
-      cx scan create --project-name "AzureDevOps_IaC_Scan" --repo "https://github.com/Abdul1110/terraform" --branch "main" --scan-types "iac" --base-uri "https://eu.ast.checkmarx.net" --client-id "xyz" --client-secret "r5sPMcb4C9YWi5m0tHwGFshGHiqbtLpW"
+      $(CX_CLI_PATH)\cx.exe scan create --project-name "AzureDevOps_IaC_Scan" --repo "https://github.com/Abdul1110/terraform" --branch "main" --scan-types "iac" --base-uri "https://eu.ast.checkmarx.net" --client-id "xyz" --client-secret "r5sPMcb4C9YWi5m0tHwGFshGHiqbtLpW"
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Scan Report'
