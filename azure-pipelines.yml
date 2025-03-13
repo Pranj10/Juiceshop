@@ -1,19 +1,29 @@
 trigger:
-  - main
+- main  # Change this based on your branch
 
 pool:
-  name: Default
+  name: 'Default'  # Using a Microsoft-hosted agent
 
 steps:
-  - script: echo Hello, world!
+- checkout: self
+  persistCredentials: true
 
-  - script: |
-      echo Add other tasks to build, test, and deploy your project.
-      echo See https://aka.ms/yaml
-    displayName: 'Run a multi-line script'
+- task: PowerShell@2
+  displayName: 'Download Checkmarx CLI'
+  inputs:
+    targetType: 'inline'
+    script: |
+      Invoke-WebRequest -Uri "https://download.checkmarx.com/cli/latest/cx.exe" -OutFile "$(Build.ArtifactStagingDirectory)\cx.exe"
 
-  - task: Checkmarx AST@3
-    inputs:
-      CheckmarxService: 'Azure_2'
-      projectName: 'Juiceshop'
-      branchName: '$(Build.SourceBranchName)'
+- task: PowerShell@2
+  displayName: 'Run IaC Scan'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $(Build.ArtifactStagingDirectory)\cx scan create --project-name "AzureDevOps_IaC_Scan" --repo "https://github.com/Abdul1110/terraform" --branch "main" --scan-type "iac" --base-uri "https://eu.ast.checkmarx.net" --client-id "xyz" --client-secret "r5sPMcb4C9YWi5m0tHwGFshGHiqbtLpW"
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Scan Report'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'ScanResults'
