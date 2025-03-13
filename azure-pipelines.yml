@@ -13,7 +13,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      Invoke-WebRequest -Uri "https://download.checkmarx.com/cli/latest/cx.exe" -OutFile "$(Build.ArtifactStagingDirectory)\cx.exe"
+      Invoke-WebRequest -Uri "https://github.com/Checkmarx/ast-cli/releases/download/2.3.16/ast-cli_2.3.16_windows_x64.zip" -OutFile "$(Build.ArtifactStagingDirectory)\cx.exe"
 
 - task: PowerShell@2
   displayName: 'Run IaC Scan'
