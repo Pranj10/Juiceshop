@@ -1,5 +1,5 @@
 trigger:
-- main  # Change this based on your branch
+- none  # Change this based on your branch
 
 pool:
   name: 'Default'  # Using a Microsoft-hosted agent
